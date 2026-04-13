@@ -1,0 +1,74 @@
+[package]
+name = "plausiden-identity"
+version = "0.1.0"
+edition = "2021"
+license = "BSL-1.1"
+repository = "https://github.com/PlausiDen/plausiden-identity"
+description = """
+Zero-knowledge identity verification engine with fraud detection, conflict resolution,
+and account recovery. Proves a person IS who they claim to be — without storing PII.
+Designed for civic technology, voting systems, and any context where one-person-one-identity
+must be cryptographically enforced while preserving privacy.
+"""
+authors = ["PlausiDen Technologies LLC"]
+keywords = ["identity", "zero-knowledge", "fraud-detection", "voting", "privacy"]
+categories = ["authentication", "cryptography"]
+
+[dependencies]
+# Cryptography — audited crates only (PlausiDen security standard)
+sha2 = "0.10"
+blake3 = "1"
+argon2 = "0.5"
+hmac = "0.12"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+
+# Observability
+tracing = "0.1"
+
+# IDs and time
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Encoding
+hex = "0.4"
+base64 = "0.22"
+
+# Random
+rand = "0.8"
+getrandom = "0.2"
+
+# Similarity / fuzzy matching
+strsim = "0.11"
+
+# Zeroize secrets after use
+zeroize = { version = "1", features = ["derive"] }
+
+# Optional HTTP server
+axum = { version = "0.8", optional = true }
+tokio = { version = "1", features = ["full"], optional = true }
+tower-http = { version = "0.6", features = ["cors", "trace"], optional = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }
+
+[features]
+default = []
+server = ["dep:axum", "dep:tokio", "dep:tower-http", "dep:tracing-subscriber"]
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+proptest = "1"
+criterion = "0.5"
+
+[[bench]]
+name = "commitment_bench"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
