@@ -46,6 +46,9 @@ getrandom = "0.2"
 # Similarity / fuzzy matching
 strsim = "0.11"
 
+# Constant-time comparison (prevents timing side-channels)
+subtle = "2"
+
 # Zeroize secrets after use
 zeroize = { version = "1", features = ["derive"] }
 

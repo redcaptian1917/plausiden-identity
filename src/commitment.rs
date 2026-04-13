@@ -25,6 +25,7 @@
 
 use blake3::Hasher;
 use sha2::{Digest, Sha512};
+use subtle::ConstantTimeEq;
 use crate::types::{
     DocumentFingerprint, IdentityAttributes, IdentityCommitment, IdentityFingerprint, Nullifier,
 };
@@ -221,20 +222,14 @@ pub fn verify_commitment(
     expected: &IdentityCommitment,
 ) -> bool {
     let computed = generate_commitment(attrs, salt);
-    // Constant-time comparison to prevent timing attacks
-    constant_time_eq(computed.as_hex().as_bytes(), expected.as_hex().as_bytes())
-}
-
-/// Constant-time byte comparison to prevent timing side-channels.
-fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    // Constant-time comparison via the `subtle` crate to prevent timing attacks.
+    // Using the audited `subtle::ConstantTimeEq` instead of hand-rolled comparison.
+    let a = computed.as_hex().as_bytes();
+    let b = expected.as_hex().as_bytes();
     if a.len() != b.len() {
         return false;
     }
-    let mut diff = 0u8;
-    for (x, y) in a.iter().zip(b.iter()) {
-        diff |= x ^ y;
-    }
-    diff == 0
+    a.ct_eq(b).into()
 }
 
 #[cfg(test)]
@@ -386,10 +381,16 @@ mod tests {
     }
 
     #[test]
-    fn constant_time_eq_works() {
-        assert!(constant_time_eq(b"hello", b"hello"));
-        assert!(!constant_time_eq(b"hello", b"world"));
-        assert!(!constant_time_eq(b"hello", b"hell"));
+    fn constant_time_verify_works() {
+        // Verify the subtle::ConstantTimeEq-based comparison works correctly
+        let attrs = test_attrs();
+        let salt = [42u8; 32];
+        let commitment = generate_commitment(&attrs, &salt);
+        assert!(verify_commitment(&attrs, &salt, &commitment));
+
+        // Tampered commitment must fail
+        let tampered = IdentityCommitment("0".repeat(64));
+        assert!(!verify_commitment(&attrs, &salt, &tampered));
     }
 
     #[test]
