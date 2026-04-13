@@ -268,7 +268,7 @@ mod tests {
 
     #[test]
     fn remaining_codes_tracks_usage() {
-        let (codes, mut code_set) = generate_recovery_codes("voter-aaa");
+        let (_codes, mut code_set) = generate_recovery_codes("voter-aaa");
         assert_eq!(remaining_codes(&code_set), RECOVERY_CODE_COUNT);
 
         mark_code_used(&mut code_set, 0);

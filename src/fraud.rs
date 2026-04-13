@@ -468,7 +468,6 @@ mod tests {
     use super::*;
     use crate::commitment::{generate_commitment, generate_salt};
     use std::collections::HashMap;
-    use std::sync::Mutex;
 
     /// In-memory identity store for testing.
     struct MockStore {
@@ -730,9 +729,11 @@ mod tests {
     #[test]
     fn detects_ip_clustering() {
         let mut store = MockStore::new();
-        let mut config = FraudConfig::default();
-        config.max_identities_per_ip = 2;
-        config.auto_lock_ip_clustering = true;
+        let config = FraudConfig {
+            max_identities_per_ip: 2,
+            auto_lock_ip_clustering: true,
+            ..FraudConfig::default()
+        };
         let engine = FraudEngine::new(config);
 
         // Three different voters from same IP

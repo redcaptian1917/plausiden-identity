@@ -229,7 +229,7 @@ proptest! {
         b in "[a-zA-Z ]{1,30}",
     ) {
         let score = compare_names(&a, &b);
-        prop_assert!(score >= 0.0 && score <= 1.0, "Score {} out of bounds", score);
+        prop_assert!((0.0..=1.0).contains(&score), "Score {} out of bounds", score);
     }
 }
 
