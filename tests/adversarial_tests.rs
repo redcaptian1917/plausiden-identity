@@ -443,8 +443,8 @@ fn attack_all_prefix_name() {
     // Both reduce to near-empty after prefix stripping — should still differ
     // because "dr" != "mr" after normalization
     // The key point: the system doesn't crash on edge-case names
-    assert!(fp1.0.len() == 64, "Fingerprint must still be valid");
-    assert!(fp2.0.len() == 64, "Fingerprint must still be valid");
+    assert!(fp1.as_hex().len() == 64, "Fingerprint must still be valid");
+    assert!(fp2.as_hex().len() == 64, "Fingerprint must still be valid");
 }
 
 // ── Attack: Very long name buffer ─────────────────────────────────────
@@ -466,7 +466,7 @@ fn attack_very_long_name() {
     assert_eq!(commitment.as_hex().len(), 64, "Long name must produce valid commitment");
 
     let fp = generate_fingerprint(&a1);
-    assert_eq!(fp.0.len(), 64, "Long name must produce valid fingerprint");
+    assert_eq!(fp.as_hex().len(), 64, "Long name must produce valid fingerprint");
 }
 
 // ── Attack: DOB format variation ──────────────────────────────────────
@@ -629,7 +629,7 @@ fn attack_fingerprint_commitment_domain_separation() {
     let commitment = generate_commitment(&attrs, &salt);
     let fingerprint = generate_fingerprint(&attrs);
     assert_ne!(
-        commitment.as_hex(), fingerprint.0,
+        commitment.as_hex(), fingerprint.as_hex(),
         "Commitment and fingerprint must use different domains"
     );
 }
@@ -737,6 +737,31 @@ fn attack_apostrophe_name_evasion() {
     let fp1 = generate_fingerprint(&a1);
     let fp2 = generate_fingerprint(&a2);
     assert_eq!(fp1, fp2, "Apostrophe must be stripped in fingerprint");
+}
+
+// ── Attack: Name normalization word-boundary safety ───────────────────
+
+#[test]
+fn attack_suffix_in_name_body() {
+    // "hawaii" ends in "ii" but "ii" is NOT a suffix here — it's part of the name.
+    // The normalizer must only strip " ii" (preceded by space), not bare "ii".
+    let a1 = make_attrs("John", "Hawaii", "1990-01-15");
+    let fp1 = generate_fingerprint(&a1);
+    // If the bug existed, "hawaii" → "hawa" which would be wrong
+    // The fingerprint for "hawaii" should be different from "hawa"
+    let a2 = make_attrs("John", "Hawa", "1990-01-15");
+    let fp2 = generate_fingerprint(&a2);
+    assert_ne!(fp1, fp2, "Suffix 'ii' in body of name must not be stripped");
+}
+
+#[test]
+fn attack_prefix_in_name_body() {
+    // "jrsmith" starts with "jr" but it's not a prefix — it's the name.
+    let a1 = make_attrs("Jrsmith", "Jones", "1990-01-15");
+    let a2 = make_attrs("Smith", "Jones", "1990-01-15");
+    let fp1 = generate_fingerprint(&a1);
+    let fp2 = generate_fingerprint(&a2);
+    assert_ne!(fp1, fp2, "Prefix 'jr' as part of name body must not be stripped");
 }
 
 // ── Attack: Similarity engine edge cases ──────────────────────────────

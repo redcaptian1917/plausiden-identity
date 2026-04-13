@@ -177,13 +177,19 @@ pub fn generate_salt() -> [u8; 32] {
 fn normalize_name(name: &str) -> String {
     let mut n = name.to_lowercase().trim().to_string();
 
-    // Remove common name prefixes/suffixes that vary in records
-    for prefix in &["mr ", "mrs ", "ms ", "dr ", "jr", "sr", "iii", "ii", "iv"] {
-        if n.ends_with(prefix) {
-            n = n[..n.len() - prefix.len()].trim().to_string();
-        }
+    // Remove common name prefixes (must be followed by space).
+    // "mr ", "mrs ", etc. already include trailing space.
+    for prefix in &["mr ", "mrs ", "ms ", "dr "] {
         if n.starts_with(prefix) {
             n = n[prefix.len()..].trim().to_string();
+        }
+    }
+
+    // Remove common name suffixes (must be preceded by space to avoid
+    // stripping from names like "hawaii" or matching "hajr").
+    for suffix in &[" jr", " sr", " iii", " ii", " iv"] {
+        if n.ends_with(suffix) {
+            n = n[..n.len() - suffix.len()].trim().to_string();
         }
     }
 

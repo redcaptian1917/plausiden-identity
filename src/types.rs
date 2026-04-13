@@ -47,12 +47,26 @@ impl Nullifier {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct IdentityFingerprint(pub String);
 
+impl IdentityFingerprint {
+    /// Returns the hex-encoded fingerprint string.
+    pub fn as_hex(&self) -> &str {
+        &self.0
+    }
+}
+
 /// A document fingerprint — hash of the identifying document (DL number, etc.).
 /// Exact match only; no fuzzy matching.
 ///
 /// Computed as: `BLAKE3(document_type || document_id)`
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DocumentFingerprint(pub String);
+
+impl DocumentFingerprint {
+    /// Returns the hex-encoded fingerprint string.
+    pub fn as_hex(&self) -> &str {
+        &self.0
+    }
+}
 
 /// Raw identity attributes used as input to commitment generation.
 /// MUST be zeroized after commitment is computed — never stored.
