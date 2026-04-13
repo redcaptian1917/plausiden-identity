@@ -874,6 +874,44 @@ fn attack_null_byte_injection() {
     assert_ne!(c1, c2, "Null byte in name must produce different commitment");
 }
 
+// ── Attack: Non-ASCII name handling ───────────────────────────────────
+
+#[test]
+fn attack_non_ascii_names_dont_all_collide() {
+    // Critical internationalization test: non-ASCII names must NOT all
+    // produce the same fingerprint. While our normalize_name strips
+    // non-alpha characters, names like "José" → "jos" and "María" → "mara"
+    // should still differ from each other because the ASCII parts differ.
+    let a1 = make_attrs("José", "García", "1990-01-15");
+    let a2 = make_attrs("María", "López", "1990-01-15");
+    let fp1 = generate_fingerprint(&a1);
+    let fp2 = generate_fingerprint(&a2);
+    assert_ne!(fp1, fp2, "Different non-ASCII names must produce different fingerprints");
+}
+
+#[test]
+fn attack_pure_unicode_names_produce_valid_fingerprint() {
+    // Names entirely in non-ASCII (e.g., Chinese, Arabic, Cyrillic) will have
+    // the name parts stripped to empty by normalize_name (ASCII-only filter).
+    // The fingerprint will still be computed from the DOB + pipe separators.
+    // Two pure-unicode names with the same DOB WILL collide on fingerprint —
+    // this is a known limitation. The commitment (SHA-512 per field) will
+    // still distinguish them because it hashes the raw input before normalizing.
+    let a1 = make_attrs("田中", "太郎", "1990-01-15");
+    let a2 = make_attrs("山田", "花子", "1990-01-15");
+    let fp1 = generate_fingerprint(&a1);
+    let fp2 = generate_fingerprint(&a2);
+    // With Unicode-aware normalization, these should NOT collide
+    // because the alphabetic characters are preserved.
+    assert_ne!(fp1, fp2, "Pure non-ASCII names must produce different fingerprints");
+
+    // But their commitments MUST differ (raw UTF-8 bytes are hashed by SHA-512)
+    let salt = generate_salt();
+    let c1 = generate_commitment(&a1, &salt);
+    let c2 = generate_commitment(&a2, &salt);
+    assert_ne!(c1, c2, "Commitments must differ even for pure non-ASCII names");
+}
+
 // ── Verification strength ordering ────────────────────────────────────
 
 #[test]

@@ -198,8 +198,10 @@ fn normalize_name(name: &str) -> String {
         n = n.replace("  ", " ");
     }
 
-    // Remove non-alphabetic characters (hyphens, apostrophes vary by system)
-    n.retain(|c| c.is_ascii_alphabetic() || c == ' ');
+    // Remove non-alphabetic characters (hyphens, apostrophes vary by system).
+    // Preserve Unicode alphabetic characters (e.g., Chinese, Arabic, Cyrillic)
+    // so non-English names don't all collapse to empty strings.
+    n.retain(|c| c.is_alphabetic() || c == ' ');
 
     n
 }
