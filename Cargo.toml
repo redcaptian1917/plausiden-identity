@@ -3,7 +3,7 @@ name = "plausiden-identity"
 version = "0.1.0"
 edition = "2021"
 license = "BSL-1.1"
-repository = "https://github.com/PlausiDen/plausiden-identity"
+repository = "https://github.com/thepictishbeast/plausiden-identity"
 description = """
 Zero-knowledge identity verification engine with fraud detection, conflict resolution,
 and account recovery. Proves a person IS who they claim to be — without storing PII.
