@@ -54,7 +54,7 @@ Identity Attributes (PII) ──→ Commitment (stored) ──→ Nullifier (per
 
 ```bash
 # Clone
-git clone https://github.com/PlausiDen/plausiden-identity.git
+git clone https://github.com/thepictishbeast/plausiden-identity.git
 cd plausiden-identity
 
 # Run tests (60 tests)

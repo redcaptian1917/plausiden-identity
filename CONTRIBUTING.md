@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/PlausiDen/plausiden-identity.git
+git clone https://github.com/thepictishbeast/plausiden-identity.git
 cd plausiden-identity
 cargo test
 ```
